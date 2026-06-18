@@ -17,6 +17,10 @@ class Config:
     # Ephemeral upload folder
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
     
+    # Fix for Hugging Face Spaces iframe (Third-Party Cookies)
+    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SECURE = True
+    
     # APIs
     GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
     PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
