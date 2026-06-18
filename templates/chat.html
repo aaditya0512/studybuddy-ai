@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row h-100 mb-4">
+    <div class="col-12 h-100 d-flex flex-column">
+        <div class="glass-card flex-grow-1 d-flex flex-column p-4 h-100" style="min-height: 70vh;">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+                <h3 class="mb-0"><i class="bi bi-robot text-primary me-2"></i>StudyBuddy <span class="gradient-text">Chat</span></h3>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-success rounded-pill px-3 py-2 me-3">Online</span>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Close Chat">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div id="chat-history" class="flex-grow-1 overflow-auto mb-4 pe-2" style="max-height: 50vh;">
+                <!-- Chat messages will be appended here -->
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3 bg-dark bg-opacity-50 p-3 rounded-3" style="max-width: 80%;">
+                        <p class="mb-0">Hello {{ current_user.name }}! Ask me anything about your uploaded documents. For example, "Explain Random Forest" or "What is Gradient Descent?".</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-auto">
+                <form id="chat-form" class="d-flex">
+                    <input type="text" id="question-input" class="form-control form-control-lg me-2" placeholder="Ask your question here..." required autocomplete="off">
+                    <button type="submit" class="btn btn-primary btn-lg px-4" id="send-btn">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chat-form');
+    const questionInput = document.getElementById('question-input');
+    const chatHistory = document.getElementById('chat-history');
+    const sendBtn = document.getElementById('send-btn');
+
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const question = questionInput.value.trim();
+        if (!question) return;
+        
+        // Append user question
+        appendMessage(question, 'user');
+        questionInput.value = '';
+        
+        // Disable input while loading
+        questionInput.disabled = true;
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        
+        try {
+            const response = await fetch('{{ url_for("api_chat") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question: question })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                appendMessage(data.answer, 'bot');
+            } else {
+                appendMessage('Error: ' + data.error, 'bot', true);
+            }
+        } catch (error) {
+            appendMessage('Connection error. Please try again.', 'bot', true);
+        } finally {
+            questionInput.disabled = false;
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
+            questionInput.focus();
+        }
+    });
+    
+    function appendMessage(text, sender, isError=false) {
+        const div = document.createElement('div');
+        div.className = sender === 'user' ? 'd-flex mb-4 flex-row-reverse' : 'd-flex mb-4';
+        
+        let avatar = '';
+        let messageBg = '';
+        
+        if (sender === 'user') {
+            avatar = `<div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-person-fill"></i></div>`;
+            messageBg = 'bg-primary text-white';
+        } else {
+            avatar = `<div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-robot"></i></div>`;
+            messageBg = isError ? 'bg-danger text-white' : 'bg-dark bg-opacity-50 text-white';
+        }
+        
+        const marginClass = sender === 'user' ? 'me-3' : 'ms-3';
+        
+        div.innerHTML = `
+            <div class="flex-shrink-0">
+                ${avatar}
+            </div>
+            <div class="${marginClass} ${messageBg} p-3 rounded-3 markdown-content" style="max-width: 80%;">
+                ${sender === 'bot' ? marked.parse(text) : `<p class="mb-0" style="white-space: pre-wrap;">${text}</p>`}
+            </div>
+        `;
+        
+        chatHistory.appendChild(div);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+});
+</script>
+{% endblock %}

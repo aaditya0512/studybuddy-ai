@@ -1,0 +1,19 @@
+# Environments
+venv/
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local Database & Storage
+studybuddy.db
+chroma_db/
+uploads/
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
