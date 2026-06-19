@@ -44,8 +44,12 @@ def generate_flashcards(text, num_cards=5):
     """Generates Flashcards from text."""
     llm = get_llm()
     
+    import random
+    salt = random.randint(1000, 9999)
+    
     prompt_template = """
-    Generate {num_cards} flashcards based on the following text.
+    [System Seed: {salt}]
+    Generate {num_cards} unique and highly diverse flashcards based on the following text.
     Return the result ONLY as a JSON array of objects. Do not include markdown code blocks or any other text.
     Each object should have:
     - "question": The concept or question
@@ -55,8 +59,8 @@ def generate_flashcards(text, num_cards=5):
     {text}
     """
     
-    prompt = PromptTemplate(template=prompt_template, input_variables=["num_cards", "text"])
-    formatted_prompt = prompt.format(num_cards=num_cards, text=text)
+    prompt = PromptTemplate(template=prompt_template, input_variables=["num_cards", "text", "salt"])
+    formatted_prompt = prompt.format(num_cards=num_cards, text=text, salt=salt)
     
     response = llm.invoke(formatted_prompt)
     try:
