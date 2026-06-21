@@ -13,3 +13,4 @@ gunicorn
 pdfplumber>=0.10.3
 PyPDF2>=3.0.1
 python-dotenv>=1.0.0
+langgraph
