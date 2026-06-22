@@ -9,4 +9,4 @@ pinned: false
 
 # StudyBuddy AI
 
-A RAG-powered learning assistant built with Flask, Langchain, Pinecone, and Google Gemini.
+A RAG-powered learning assistant built with Flask,LangGraph, Langchain, Pinecone, and Google Gemini.
